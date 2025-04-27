@@ -1,0 +1,50 @@
+---
+title: "Worksheet 5"
+author: "Misha Sharma"
+output:
+  html_notebook:
+    df_print: paged
+---
+
+```{r echo=FALSE}
+
+library(car)
+library(ggplot2)
+library(dplyr)
+library(scales)
+library(RColorBrewer)
+
+data("TitanicSurvival")
+d <- as_tibble(TitanicSurvival)
+
+d_clean <- d[!is.na(d$passengerClass) & !is.na(d$survived), ]
+
+# Count occurrences of passengerClass and survived
+df_q1_sum <- as.data.frame(table(d_clean$passengerClass, d_clean$survived))
+colnames(df_q1_sum) <- c("passengerClass", "survived", "n")
+
+ggplot(df_q1_sum, aes(x = passengerClass, y = n, fill = survived)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal() +
+  labs(x = "Passenger Class", y = "Proportion", title = "Survival Proportions by Passenger Class")
+
+df_q2_sum <- as.data.frame(table(d_clean$passengerClass))
+colnames(df_q2_sum) <- c("passengerClass", "n")
+
+# Create a pie chart
+ggplot(df_q2_sum, aes(x = "", y = n, fill = passengerClass)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  scale_y_reverse() +  # Reverse the ordering of the pie chart
+  scale_fill_brewer(palette = "Purples") +
+  theme_minimal() +  # Apply a minimal theme
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+  ) +
+  labs(title = "Passenger Class on the Titanic", x = NULL, y = NULL)
+
+```
