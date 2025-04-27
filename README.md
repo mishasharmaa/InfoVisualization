@@ -17,4 +17,3 @@ On completion of the course, I can:
 
 In this repository, you will find the worksheets I have completed, as well as the final project in the course. 
 
-file:///Users/mishasharma/Desktop/InfoVisualisation%20/Assignment/Assignment.nb.html
