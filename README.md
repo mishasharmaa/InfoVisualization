@@ -12,3 +12,7 @@ On completion of the course, I can:
 - Gain an understanding of time series data.
 - Understand how to convey statistical relationships through visualizations effectively.
 - Become proficient in visualization languages (R language).
+
+# Worksheets and Final Project 
+
+In this repository, you will find the worksheets I have completed, as well as the final project in the course. 
