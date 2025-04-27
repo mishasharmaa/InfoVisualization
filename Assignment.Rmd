@@ -1,0 +1,337 @@
+---
+title: 'From Billions to Trends: Exploring the Worlds Wealthiest'
+author: 'Misha Sharma: 100826646'
+output:
+  html_notebook:
+    df_print: paged
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+In this report we will analyze billionaire statistics using data visualizations to explore key questions such as: which country contains the most billionaires and why, the dominant industries that contain the wealthiest, the difference between which gender is more likely to succeed in each industry, the relationship between age and wealth, and lastly, the average and median net worth of billionaires. Using the dataset called *Billionaires Statistics Dataset* written by Nidula Elgiriyewithana and sourced from Kaggle, I will present five visualizations such as a pie chart, bar plots, and a hexbin plot, that will help explore the questions above. The analysis will provide a clearer understanding of how billionaires' wealth is distributed globally and how factors such as industry and age influence net worth. Additionally, a geographic choropleth map will highlight the global distribution of billionaires, providing insights into the economic conditions and opportunities available in different regions. By examining gender disparities across industries, we can also uncover broader systemic issues that contribute to inequality in wealth accumulation. Each visualization is carefully selected to reveal different perspectives within the data and is accompanied by an interpretation of the patterns that emerge. This report aims to tell a cohesive story about wealth, opportunity, and trends among the world's richest individuals.
+
+##### Reference:
+
+##### <https://www.kaggle.com/datasets/nelgiriyewithana/billionaires-statistics-dataset/data>
+
+### The Dataset:
+
+The dataset below shows the top 50 billionaires in the world. Columns like final Net Worth, persons name, age, country, etc, will help us explore our questions further in detail.
+
+```{r echo=FALSE, message=FALSE}
+# Load libraries
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Read dataset
+df <- read.csv("Billionaires Statistics Dataset.csv")
+
+# Filter and select relevant columns
+billionaire_filtered <- select(df, rank, finalWorth, personName, age, country, industries, gender)
+
+billionaire_table <- kable(head(billionaire_filtered, 50), caption = "Top 50 Billionaires Overview", format = "html")
+
+billionaire_table <- kable_styling(billionaire_table,
+                                   full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+billionaire_table <- column_spec(billionaire_table, 1, bold = TRUE)
+
+# Print the styled table
+billionaire_table
+```
+
+#### The Number of Different Countries In The Dataset
+
+```{r echo=FALSE}
+
+# Count how many unique countries there are in the 'country' column
+num_countries <- length(unique(df$country))
+
+message <- sprintf("Out of 2540 people, there is a total of %d different countries in this dataset.", num_countries)
+
+# Print the message
+cat(message, "\n")
+
+#country_counts <- table(df$country)
+#print(country_counts)
+```
+
+The ranking of the billionaire data is in terms of wealth, from 1 being the wealthiest all the way down to 2540 in the original datatset. To make in-depth visualizations about the *Billionaire Dataset* we have to locate the countries that have the wealthiest people.
+
+#### The Countries with The Most Billionaires
+
+In this Geographic map it shows us the countries that have the most billionaires versus the countries with the least to no billionaires. According to *Focus on Business,* "The United States has the highest number of billionaires globally at 156, while China ranks second at 86. The two countries, therefore, host 49% of the top 500 billionaires globally." This raises the question, "why does the United States and China have so many billionaires?" Well, there are many factors that come to play. First, the United States and China both have a strong economy, large population, and a huge history of wealth accumulation over the years, such as technology, fashion, and finance. With the United States carrying a GDP of 30.4 trillion dollars and China carrying 19.6 trillion dollars, the competition among individuals within the same industry to succeed is intense.
+
+##### References:
+
+(<https://focusonbusiness.eu/en/education/70-of-the-top-10-billionaires-generated-wealth-from-the-tech-industry/4086#>)
+
+(<https://www.focus-economics.com/blog/the-largest-economies-in-the-world/>)
+
+```{r echo=FALSE}
+
+# Load libraries
+library(ggplot2)
+library(dplyr)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(viridis)
+library(viridisLite)
+
+# Load world map data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+world$country <- world$name  # Rename column for merging
+
+
+# Clean and standardize country names in both datasets
+world$country <- trimws(tolower(world$country))  
+billionaires$country <- trimws(tolower(billionaires$country))  
+billionaires$country[billionaires$country == "united states"] <- "united states of america"
+
+# Count the number of billionaires per country
+billionaire_counts <- count(billionaires, country)  
+colnames(billionaire_counts) <- c("country", "billionaire_count")
+
+# Merge the dataset with world map data
+world <- left_join(world, billionaire_counts, by = "country")
+
+# Transform CRS
+world <- st_transform(world, crs = 4326)
+
+# Choropleth with color scale using viridis
+ggplot(data = world) +
+  geom_sf(aes(fill = billionaire_count), color = "black", size = 0.2) +  
+  scale_fill_viridis(
+    option = "plasma",
+    na.value = "gray90",
+    direction = -1, 
+    name = "Number of Billionaires"
+  ) +
+  theme_minimal() +
+  labs(title = "World Billionaire Map") +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5),
+    panel.background = element_rect(fill = "gray95", color = NA),  
+    plot.background = element_rect(fill = "gray95", color = NA)   
+  ) +
+  geom_sf_text(data = subset(world, country == "united states of america"),
+               aes(label = "USA"), 
+               color = "white", size = 2.5, fontface = "bold", 
+               inherit.aes = FALSE) +
+  geom_sf_text(data = subset(world, country == "china"),
+               aes(label = "China"), 
+               color = "white", size = 2.5, fontface = "bold", 
+               inherit.aes = FALSE)
+```
+
+*Note that the dataset may be incomplete for lesser-known billionaires or underrepresented regions*
+
+#### Dominant Industries
+
+These three industries have consistently been among the most successful throughout the history of the world, and alongside them, we have 15 other sectors that are contributing to the success of many prominent individuals. This bar plot highlights the diversity of industries where wealth is being generated. As shown, the tech industry has become the most popular industry for billionaires. People who you might recognize, such as, Jeff Bezos, Larry Ellison, Bill Gates, Larry Page, Mark Zuckerberg, and Colin Zheng Huang. According to *Focus on Business, "*The ability of technology to produce more billionaires reflects the massive gains made by entrepreneurs in a sector with comparatively low entry barriers, a high capacity for innovation, and a rapidly increasing global demand." As a result, technology companies have been able to scale rapidly, attract significant investment, and dominate global markets, leading to unprecedented wealth accumulation for their founders.
+
+##### Reference:
+
+(<https://focusonbusiness.eu/en/education/70-of-the-top-10-billionaires-generated-wealth-from-the-tech-industry/4086#>)
+
+```{r echo=FALSE}
+
+# Load libraries
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# Group by industry and calculate the total net worth for each industry
+industry_summary <- aggregate(billionaires$finalWorth, 
+                              by = list(billionaires$industries), 
+                              FUN = sum, na.rm = TRUE)
+
+# Rename the columns to read it better 
+colnames(industry_summary) <- c("industry", "total_net_worth")
+
+# Remove rows with NA values
+industry_summary <- industry_summary[!is.na(industry_summary$total_net_worth), ]
+
+# Sort industries by total net worth in descending order
+industry_summary <- industry_summary[order(industry_summary$total_net_worth, decreasing = TRUE), ]
+
+# Create the bar plot
+ggplot(industry_summary, aes(x = reorder(industry, total_net_worth), y = total_net_worth)) +
+  geom_bar(stat = "identity", fill = "#cc0066") +
+  coord_flip() + 
+  scale_y_continuous(labels = scales::comma_format()) +  # Format numbers with commas
+  labs(title = "Dominant Industries by Total Net Worth",
+       x = "Industry", y = "Total Net Worth (Billion USD)") +
+  theme_minimal()
+```
+
+#### The Difference Between Gender and Success
+
+Now, we know what industries produce the wealthiest individuals, we can explore whether gender plays a role in success. From the table above we can see that men are more likely to achieve billionaire status. As stated in *Ten Facts about Billionaires,* "90 percent of billionaires are male," but does that mean there are no women making the same amount? Let's do an in depth analysis of how many billionaires are women.
+
+##### References:
+
+(<https://www.brookings.edu/articles/ten-facts-about-billionaires/#>)
+
+```{r echo=FALSE}
+# Load libraries
+library(ggplot2)
+library(dplyr)
+
+# Define new colors for genders
+gender_colors <- c("M" = "deepskyblue4",  
+                   "F" = "#cc0066") 
+# Create a stacked bar chart with custom colors
+ggplot(industry_gender_counts_df, aes(x = reorder(Industry, -as.numeric(Count)), 
+                                      y = as.numeric(Count), fill = Gender)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = gender_colors) +  # Apply new colors
+  scale_y_continuous(labels = scales::comma_format()) +  # Format y-axis
+  labs(title = "Billionaire Count by Industry and Gender",
+       x = "Industry", y = "Number of Billionaires", fill = "Gender") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels
+    plot.margin = margin(10, 10, 10, 100)  # Adjust left margin to prevent cutting off
+  )
+```
+
+This stacked bar graph illustrates the gender distribution across various industries. It clearly shows that men dominate all sectors, comprising 90% of the total, while women make up the remaining 10%. The exact breakdown of each gender's representation in different industries is provided below.
+
+```{r echo=FALSE, message=FALSE}
+library(knitr)
+library(kableExtra)
+
+# Convert gender to factor
+billionaires$gender <- as.factor(billionaires$gender)
+
+# Count the number of billionaires in each industry by gender
+industry_gender_counts <- table(billionaires$industries, billionaires$gender)
+
+# Convert the table to a data frame 
+industry_gender_counts_df <- as.data.frame(industry_gender_counts)
+
+# Rename columns 
+colnames(industry_gender_counts_df) <- c("Industry", "Gender", "Count")
+
+# Reorder for appearance 
+industry_gender_counts_df$Industry <- factor(industry_gender_counts_df$Industry, 
+                                             levels = unique(industry_gender_counts_df$Industry[order(-industry_gender_counts_df$Count)]))
+
+# Create the table
+table_output <- kable(industry_gender_counts_df, caption = "Billionaires by Industry and Gender")
+
+# Styling
+table_output <- kable_styling(table_output, full_width = FALSE, position = "center",
+                              bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+# Make column bold
+table_output <- column_spec(table_output, 1, bold = TRUE)
+
+# Print table
+table_output
+```
+
+#### The Male Dominance
+
+There are 337 women who have claimed billionaire status. But why do men dominate more? This disparity is linked to factors like historical gender roles, persistent wage gaps, and the type of industry where wealth is often accumulated. For example, if we talk about societal expectations, women have always been in position with less power and influence, this limits their opportunity to accumulate wealth. Wage gaps also play a big role. If a woman has the same years of experience and education as a male, why does she have to face wage gap problems? This raises concern for the ability for women to save and invest. The type of industry a women chooses her career in is also very important. Finance and technology are examples of two industries where wealth is accumulated the most, and often times, they are male-dominated. This limits a woman's opportunity to receive equal access to high-paying roles, leadership positions, and the financial networks necessary for wealth accumulation.
+
+#### The Common Age to Gain Billionaire Status
+
+According to *Statista*, "Nearly half of the 3,323 billionaires worldwide in 2023 were between 50 and 70 years old." 40% of billionaires were above 70 years old, whereas around 10% were below 50 years. This Hexbin diagram shows us what age is common to become a billionaire. The plot tells us that it is most common to become wealthy after the age of 28 and most people only earn between 0 to less than 5 billion dollars. The wealthiest person in the world has a net worth of \$211 billion at the age of 76 years. The youngest billionaire in this dataset is just above 28. Below is an in-depth visual that allows us to see at what age wealth is accumulated the most.
+
+##### Reference:
+
+(<https://www.statista.com/statistics/621046/age-distribution-of-billionaires-globally/#>)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Load libraries
+library(ggplot2)
+library(hexbin)
+
+# Filter valid rows
+data <- data[!is.na(data$age) & !is.na(data$finalWorth), ]
+
+# Create hexbin plot 
+ggplot(data, aes(x = finalWorth, y = age)) +
+  stat_binhex(bins = 40, color = "black") +
+  scale_x_continuous(
+    name = "Net Worth (Billions USD)",
+    labels = scales::comma
+  ) +
+  scale_y_continuous(
+    name = "Age",
+    breaks = seq(20, ceiling(max(data$age, na.rm = TRUE)), by = 10),
+    limits = c(20, ceiling(max(data$age, na.rm = TRUE)))
+  ) +
+  scale_fill_gradientn(
+    colours = c("#cc0066", "#8000cc", "#0055cc"), 
+    name = "Number of\nBillionaires"
+  ) +
+  labs(
+    title = "Relationship Between Age and Wealth",
+    x = "Net Worth (Billions USD)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 18),
+    plot.subtitle = element_text(size = 13),
+    axis.title = element_text(face = "bold"),
+    legend.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+This Hexbin plot highlights the relationship between age and wealth of billionaires in the dataset. Each hexagon represents a cluster of individuals with similar age and net worth. The legends tells us that the darker shades indicate a higher concentration of billionaires whereas the lighter pink shades represent fewer billionaires. Most billionaires are clustered between the ages of 50 and 70. There are very few billionaires under the age of 30, and none under 20, which aligns with expectations due to time needed for wealth accumulation. Overall, the plot shows that while age is not strictly predictive of net worth, wealth tends to accumulate with age, particularly between mid-career and late-career stages.
+
+#### The Average and Median Net Worth of 2640 Billionaires
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+library(ggplot2)
+
+# Calculate average and median net worth
+average_worth <- mean(df$finalWorth, na.rm = TRUE)
+median_worth <- median(df$finalWorth, na.rm = TRUE)
+
+# Count number of billionaires
+num_billionaires <- nrow(df)
+
+# Prepare data with labels for the pie chart
+worth_data <- data.frame(
+  Category = c("Average Net Worth", "Median Net Worth"),
+  Value = c(average_worth, median_worth)
+)
+
+# Create a new column with formatted labels and change units to Billions 
+worth_data$Label <- c(
+  paste0("Average Billionaires: $", round(average_worth / 1000, 2), "B"),
+  paste0("Median Billionaires: $", round(median_worth / 1000, 2), "B")
+)
+
+neon_colors <- c("#cc0066", "#8000cc")  
+
+# Plot pie chart
+ggplot(worth_data, aes(x = "", y = Value, fill = Label)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +
+  coord_polar("y") +
+  scale_fill_manual(values = neon_colors) +
+  labs(
+    x = NULL,
+    y = NULL
+  ) +
+  theme_void() +
+  theme(legend.title = element_blank())
+```
+
+In the billionaire dataset, the average net worth is significantly higher than the median. The average number of billionaires in the dataset is \$4.62B and the median net worth of billionaires is \$2.3B. This difference is a sign of a right-skew distribution. Where a small number of individuals (Elon Musk, Jeff Bezos) have extremely high net worth that pull the average upward. The median represents a billionaire whose wealth is in the center of the dataset. It is less affected by outliers. Overall, the wealth distribution among billionaires is uneven, and most of them hold net worth closer to the median than the average. This highlights how wealth concentration affects statistical measures and why both average and median are important for understanding economic inequality.
+
+### Conclusion
+
+This report provided a comprehensive visual analysis of global billionaire trends using the *Billionaires Statistics Dataset*. Through a range of thoughtfully crafted visualizations including a choropleth map, bar charts, a pie chart, and a hexbin plot, we uncovered meaningful insights into where billionaires come from, which industries dominate their success, and how factors like gender and age correlate with wealth accumulation. It is not a surprise that the stark concentration of billionaires lies within the United States and China, emphasizing the influence of population size, GDP, and economic opportunity. The exploration of industry dominance leads us to the conclusion that technology is the powerhouse out of all sectors. Gender based analysis revealed a significant disparity, with male billionaires vastly outnumbering females, reflecting broader social and structural inequalities. The relationship between wealth and age further confirmed that wealth tends to accumulate over time, with most emerging in their 50s and 70s. Overall, not only does this project demonstrates technical proficiency in data manipulation using R, but also teaches us the socio-economic dynamics shaping global wealth.
