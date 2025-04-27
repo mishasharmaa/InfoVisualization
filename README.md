@@ -5,7 +5,7 @@ This class taught us the fundamental principles of information visualization and
 # Learning Outcomes
 
 On the successful completion of the course, students will be able to:
-• Gain an understanding of basic data visualization techniques.
+-  Gain an understanding of basic data visualization techniques.
 • Understand how to design and convey quantitative information meaningfully with visualizations.
 • Be able to identify the appropriate visualization tools for a given dataset and problem.
 • Gain skills in communication.
