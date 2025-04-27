@@ -1,6 +1,6 @@
 # InfoVisualization - CSCI 4210U
 
-This class taught us the fundamental principles of information visualization and has helped me gain skills in creating data visualizations using R. 
+This class taught us the fundamental principles of information visualization and has helped me gain skills in creating data visualizations using R. Topics in this course have included visualizing patterns over time, data selection and cleaning, and visualizing for exploratory data analysis, especially looking for relationships and differences among variables.
 
 # Learning Outcomes
 
